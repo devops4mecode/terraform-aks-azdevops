@@ -1,0 +1,80 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+resources:
+- repo: self
+
+stages:
+- stage: Validate
+  jobs:
+  - job: Validate
+    continueOnError: false
+    steps:
+    - publish: $(Build.SourcesDirectory)
+      artifact: terraform_out
+    - task : TerraformInstaller@0
+      displayName: 'Use Terraform v0.13.5'
+      inputs:
+        terraformVersion: 0.13.5
+    - task: TerraformTaskV1@0
+      displayName: 'terraform init'
+      inputs:
+        command: init
+        workingDirectory: $(Build.SourcesDirectory)
+        backendType: azurerm
+        backendServiceArm: 'do4mAksTerraformSPN'
+        backendAzureRmResourceGroupName: 'do4m_aks_demo_rsg'
+        backendAzureRmStorageAccountName: 'do4mterraformstate'
+        backendAzureRmContainerName: 'tfstate'
+        backendAzureRmKey: 'do4m.terraform.tfstate'
+    - task: TerraformTaskV1@0
+      displayName: 'terraform validate'
+      inputs:
+        command: validate
+        workingDirectory: $(Build.SourcesDirectory)
+- stage: Deploy
+  jobs:
+    # track deployments on the environment
+  - deployment: Deploy_Terraform
+    pool:
+      vmImage: 'ubuntu-latest'
+    # creates an environment if it doesn’t exist
+    environment: 'DEV'
+    strategy:
+      # default deployment strategy
+      runOnce:
+        deploy:
+          steps:
+          # - download: current
+          #   artifact: terraform_out
+          - task: TerraformTaskV1@0
+            displayName: 'Terraform Init'
+            inputs:
+              command: init
+              workingDirectory: $(Pipeline.Workspace)/terraform_out
+              backendType: azurerm
+              backendServiceArm: 'do4mAksTerraformSPN'
+              backendAzureRmResourceGroupName: 'do4m_aks_demo_rsg'
+              backendAzureRmStorageAccountName: 'do4mterraformstate'
+              backendAzureRmContainerName: 'tfstate'
+              backendAzureRmKey: 'do4m.terraform.tfstate'
+          - task: TerraformTaskV1@0
+            displayName: 'Terraform Plan'
+            inputs:
+              command: plan
+              workingDirectory: $(Pipeline.Workspace)/terraform_out
+              environmentServiceNameAzureRM: 'do4mAksTerraformSPN'
+              secureVarsFile: 'aks_conf.tfvars'
+              commandOptions: '-out $(Pipeline.Workspace)/terraform_out/terraform_aks_out'
+              terraformVersion: 0.13.5
+          - task: TerraformTaskV1@0
+            displayName: 'Terraform Apply'
+            inputs:
+              command: apply
+              workingDirectory: $(Pipeline.Workspace)/terraform_out
+              environmentServiceNameAzureRM: 'do4mAksTerraformSPN'
+              commandOptions: '$(Pipeline.Workspace)/terraform_out/terraform_aks_out'
+              terraformVersion: 0.13.5
+            
