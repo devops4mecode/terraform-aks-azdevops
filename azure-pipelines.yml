@@ -24,11 +24,11 @@ stages:
         command: init
         workingDirectory: $(Build.SourcesDirectory)
         backendType: azurerm
-        backendServiceArm: 'do4mAksTerraformSPN'
-        backendAzureRmResourceGroupName: 'do4m_aks_demo_rsg'
-        backendAzureRmStorageAccountName: 'do4mterraformstate'
-        backendAzureRmContainerName: 'tfstate'
-        backendAzureRmKey: 'do4m.terraform.tfstate'
+        backendServiceArm: $(SPN)
+        backendAzureRmResourceGroupName: $(azRSG)
+        backendAzureRmStorageAccountName: $(azStorageAccount)
+        backendAzureRmContainerName: $(azSAContainer)
+        backendAzureRmKey: $(backendKey)
     - task: TerraformTaskV1@0
       displayName: 'terraform validate'
       inputs:
@@ -55,18 +55,18 @@ stages:
               command: init
               workingDirectory: $(Pipeline.Workspace)/terraform_out
               backendType: azurerm
-              backendServiceArm: 'do4mAksTerraformSPN'
-              backendAzureRmResourceGroupName: 'do4m_aks_demo_rsg'
-              backendAzureRmStorageAccountName: 'do4mterraformstate'
-              backendAzureRmContainerName: 'tfstate'
-              backendAzureRmKey: 'do4m.terraform.tfstate'
+              backendServiceArm: $(SPN)
+              backendAzureRmResourceGroupName: $(azRSG)
+              backendAzureRmStorageAccountName: $(azStorageAccount)
+              backendAzureRmContainerName: $(azSAContainer)
+              backendAzureRmKey: $(backendKey)
           - task: TerraformTaskV1@0
             displayName: 'Terraform Plan'
             inputs:
               command: plan
               workingDirectory: $(Pipeline.Workspace)/terraform_out
-              environmentServiceNameAzureRM: 'do4mAksTerraformSPN'
-              secureVarsFile: 'aks_conf.tfvars'
+              environmentServiceNameAzureRM: $(SPN)
+              secureVarsFile: $(securedFile)
               # commandOptions: '-out $(Pipeline.Workspace)/terraform_out/terraform_aks_out'
               terraformVersion: 0.13.5
           - task: TerraformTaskV1@0
@@ -74,7 +74,7 @@ stages:
             inputs:
               command: apply
               workingDirectory: $(Pipeline.Workspace)/terraform_out
-              environmentServiceNameAzureRM: 'do4mAksTerraformSPN'
+              environmentServiceNameAzureRM: $(SPN)
               # commandOptions: '$(Pipeline.Workspace)/terraform_out/terraform_aks_out'
               terraformVersion: 0.13.5
             
