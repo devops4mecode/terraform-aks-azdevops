@@ -67,7 +67,7 @@ stages:
               workingDirectory: $(Pipeline.Workspace)/terraform_out
               environmentServiceNameAzureRM: 'do4mAksTerraformSPN'
               secureVarsFile: 'aks_conf.tfvars'
-              commandOptions: '-out $(Pipeline.Workspace)/terraform_out/terraform_aks_out'
+              # commandOptions: '-out $(Pipeline.Workspace)/terraform_out/terraform_aks_out'
               terraformVersion: 0.13.5
           - task: TerraformTaskV1@0
             displayName: 'Terraform Apply'
@@ -75,6 +75,6 @@ stages:
               command: apply
               workingDirectory: $(Pipeline.Workspace)/terraform_out
               environmentServiceNameAzureRM: 'do4mAksTerraformSPN'
-              commandOptions: '$(Pipeline.Workspace)/terraform_out/terraform_aks_out'
+              # commandOptions: '$(Pipeline.Workspace)/terraform_out/terraform_aks_out'
               terraformVersion: 0.13.5
             
