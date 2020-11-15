@@ -10,7 +10,7 @@ resource "azurerm_kubernetes_cluster" "aks_k2" {
   dns_prefix          = var.dns_name
   kubernetes_version  = var.kubernetes_version
 
-  dynamic "default_node_pool" {
+  dynamic "agent_pool_profile" {
     for_each = var.agent_pools
     iterator = pool
     content {
